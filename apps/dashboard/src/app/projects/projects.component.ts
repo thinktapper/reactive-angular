@@ -1,8 +1,20 @@
-import { map } from 'rxjs/operators';
-import { Store, select } from '@ngrx/store';
-import { Observable } from 'rxjs';
-import { Component, OnInit } from '@angular/core';
-import { Customer, Project, ProjectsService, NotificationsService, CustomersService, ProjectsState } from '@workshop/core-data';
+import { map } from 'rxjs/operators'
+import { Store, select } from '@ngrx/store'
+import { Observable } from 'rxjs'
+import { Component, OnInit } from '@angular/core'
+import {
+  Customer,
+  Project,
+  ProjectsService,
+  NotificationsService,
+  CustomersService,
+  ProjectsState,
+  AddProject,
+  LoadProjects,
+  UpdateProject,
+  DeleteProject,
+} from '@workshop/core-data'
+import { initialState } from 'libs/core-data/src/lib/state/customers/customers.reducer'
 
 const emptyProject: Project = {
   id: null,
@@ -10,84 +22,84 @@ const emptyProject: Project = {
   details: '',
   percentComplete: 0,
   approved: false,
-  customerId: null
+  customerId: null,
 }
 
 @Component({
   selector: 'app-projects',
   templateUrl: './projects.component.html',
-  styleUrls: ['./projects.component.scss']
+  styleUrls: ['./projects.component.scss'],
 })
 export class ProjectsComponent implements OnInit {
-  projects$: Observable<Project[]>;
-  customers$: Observable<Customer[]>;
-  currentProject: Project;
+  projects$: Observable<Project[]>
+  customers$: Observable<Customer[]>
+  currentProject: Project
 
   constructor(
     private projectsService: ProjectsService,
     private customerService: CustomersService,
     private store: Store<ProjectsState>,
-    private ns: NotificationsService) {
-      this.projects$ = store.pipe(
-        select('projects'),
-        map((projectsState: ProjectsState) => projectsState.projects)
-      )
-    }
+    private ns: NotificationsService
+  ) {
+    this.projects$ = store.pipe(
+      select('projects'),
+      map((projectsState: ProjectsState) => projectsState.projects)
+    )
+  }
 
   ngOnInit() {
-    this.getProjects();
-    this.getCustomers();
-    this.resetCurrentProject();
+    this.getProjects()
+    this.getCustomers()
+    this.resetCurrentProject()
   }
 
   resetCurrentProject() {
-    this.currentProject = emptyProject;
+    this.currentProject = emptyProject
   }
 
   selectProject(project) {
-    this.currentProject = project;
+    this.currentProject = project
   }
 
   cancel(project) {
-    this.resetCurrentProject();
+    this.resetCurrentProject()
   }
 
   getCustomers() {
-    this.customers$ = this.customerService.all();
+    this.customers$ = this.customerService.all()
   }
 
   getProjects() {
-    // this.projects$ = this.projectsService.all();
+    this.store.dispatch(new LoadProjects(initialProjects))
   }
 
   saveProject(project) {
     if (!project.id) {
-      this.createProject(project);
+      this.createProject(project)
     } else {
-      this.updateProject(project);
+      this.updateProject(project)
     }
   }
 
   createProject(project) {
-    this.store.dispatch({type: 'create', payload: project});
+    this.store.dispatch(new AddProject(project))
     // These will go away
-    this.ns.emit('Project created!');
-    this.resetCurrentProject();
+    this.ns.emit('Project created!')
+    this.resetCurrentProject()
   }
 
   updateProject(project) {
-    this.store.dispatch({type: 'update', payload: project});
+    this.store.dispatch(new UpdateProject(project))
     // These will go away
-    this.ns.emit('Project updated!');
-    this.resetCurrentProject();
+    this.ns.emit('Project updated!')
+    this.resetCurrentProject()
   }
 
   deleteProject(project) {
-    this.store.dispatch({type: 'delete', payload: project});
+    this.store.dispatch(new DeleteProject(project))
 
     // These will go away
-    this.ns.emit('Project deleted!');
-    this.resetCurrentProject();
+    this.ns.emit('Project deleted!')
+    this.resetCurrentProject()
   }
 }
-
